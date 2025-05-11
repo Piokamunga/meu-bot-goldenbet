@@ -6,7 +6,7 @@ from twilio.rest import Client
 
 print("Executando bot.py...")
 
-TOKEN = '7556007084:AAGlOG_3crfkyNaDDpfKG4FSsdCUHc5ncCI'
+TOKEN = '7556007084:AAGiPr6S7ZMAq-E5_nsqsRDVFD-urU2bYQ0'
 CHAT_ID = '-1001234567890'
 
 TWILIO_ACCOUNT_SID = 'AC990443fa5f1dd456d1a8fc4bf7f323c8'
