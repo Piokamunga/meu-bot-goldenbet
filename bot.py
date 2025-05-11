@@ -16,6 +16,7 @@ DESTINO_SMS = '+244932071284'
 
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
+# Iniciar o servidor Flask
 try:
     manter_online()
 except Exception as e:
