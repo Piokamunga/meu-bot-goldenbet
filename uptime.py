@@ -1,14 +1,13 @@
 from flask import Flask
 from threading import Thread
 
-app = Flask(__name__)
+app_uptime = Flask(__name__)
 
-@app.route('/')
+@app_uptime.route('/uptime')
 def home():
-    return "<h1>Bot rodando normalmente!</h1><p>Status: Online com logs ativos.</p>"
+    return "<h1>GoldenAlertasBot rodando</h1>"
 
 def manter_online():
     def run():
-        print("Iniciando Flask para uptime...")
-        app.run(host='0.0.0.0', port=8080)
+        app_uptime.run(host='0.0.0.0', port=8081)
     Thread(target=run).start()
