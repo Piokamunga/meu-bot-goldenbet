@@ -1,17 +1,17 @@
 
-from dashboard import app
-from uptime import manter_online
+from flask import Flask
+from bot import app, configurar_webhook
 from threading import Thread
 from time import sleep
-from bot import enviar_alerta_simples, iniciar_bot
-
-def enviar_automaticamente():
-    while True:
-        enviar_alerta_simples()
-        sleep(300)
+from bot import enviar_alerta_automatico
 
 if __name__ == "__main__":
-    manter_online()
-    Thread(target=iniciar_bot).start()
-    Thread(target=enviar_automaticamente).start()
-    app.run(host='0.0.0.0', port=8080)
+    configurar_webhook()
+
+    def loop_alertas():
+        while True:
+            enviar_alerta_automatico()
+            sleep(300)
+
+    Thread(target=loop_alertas).start()
+    app.run(host="0.0.0.0", port=8080)
