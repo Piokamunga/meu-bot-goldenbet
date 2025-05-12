@@ -1,56 +1,53 @@
-
 from flask import Flask, render_template, request, redirect
-import os
+import sqlite3
+from datetime import datetime
 
 app = Flask(__name__)
 
-def ler_logs():
-    if not os.path.exists("log_alertas.txt"):
-        return []
-    with open("log_alertas.txt", encoding="utf-8") as f:
-        linhas = f.readlines()[-10:]
-    return [linha.strip() for linha in linhas[::-1]]
+DB_NAME = "feedback.db"
 
-def registrar_feedback(slot, status):
-    with open("feedback.txt", "a", encoding="utf-8") as f:
-        f.write(f"{slot}|{status}\n")
+def init_db():
+    with sqlite3.connect(DB_NAME) as conn:
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS feedback (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            slot TEXT NOT NULL,
+            resultado TEXT NOT NULL,
+            data TEXT NOT NULL
+        )''')
+        conn.commit()
 
-def calcular_ranking():
-    if not os.path.exists("feedback.txt"):
-        return []
-    with open("feedback.txt", encoding="utf-8") as f:
-        dados = [linha.strip().split("|") for linha in f if "|" in linha]
-    contagem = {}
-    for slot, status in dados:
-        if slot not in contagem:
-            contagem[slot] = {"bom": 0, "ruim": 0}
-        if status == "bom":
-            contagem[slot]["bom"] += 1
-        else:
-            contagem[slot]["ruim"] += 1
+def registrar_feedback(slot, resultado):
+    with sqlite3.connect(DB_NAME) as conn:
+        c = conn.cursor()
+        c.execute("INSERT INTO feedback (slot, resultado, data) VALUES (?, ?, ?)",
+                  (slot, resultado, datetime.now().strftime("%Y-%m-%d %H:%M")))
+        conn.commit()
+
+def obter_ranking():
+    with sqlite3.connect(DB_NAME) as conn:
+        c = conn.cursor()
+        c.execute("SELECT slot, COUNT(*) as total, SUM(CASE WHEN resultado = 'bom' THEN 1 ELSE 0 END) as bons FROM feedback GROUP BY slot")
+        dados = c.fetchall()
     ranking = []
-    for slot, val in contagem.items():
-        total = val["bom"] + val["ruim"]
+    for slot, total, bons in dados:
         if total == 0: continue
-        perc = round((val["bom"] / total) * 100)
-        ranking.append((slot, perc))
+        perc = round((bons / total) * 100)
+        ranking.append((slot, perc, total))
     ranking.sort(key=lambda x: -x[1])
-    return ranking[:5]
+    return ranking
 
-@app.route("/", methods=["GET", "POST"])
-@app.route("/dashboard", methods=["GET", "POST"])
+@app.route("/")
 def dashboard():
-    logs = ler_logs()
-    ranking = calcular_ranking()
+    ranking = obter_ranking()
+    slots = [r[0] for r in ranking]
+    percentuais = [r[1] for r in ranking]
+    return render_template("dashboard.html", ranking=ranking, slots=slots, percentuais=percentuais)
 
-    if request.method == "POST":
-        from bot import enviar_alerta_simples
-        enviar_alerta_simples()
-        logs = ler_logs()
-        ranking = calcular_ranking()
-
-    if request.args.get("slot") and request.args.get("f"):
-        registrar_feedback(request.args["slot"], request.args["f"])
-        return redirect("/dashboard")
-
-    return render_template("dashboard.html", logs=logs, ranking=ranking)
+@app.route("/feedback", methods=["POST"])
+def feedback():
+    slot = request.form.get("slot")
+    resultado = request.form.get("resultado")
+    if slot and resultado:
+        registrar_feedback(slot, resultado)
+    return redirect("/")
