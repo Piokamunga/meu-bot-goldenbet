@@ -1,7 +1,6 @@
 
 from flask import Flask, render_template, request, redirect
 import os
-from collections import Counter
 
 app = Flask(__name__)
 
