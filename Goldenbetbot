@@ -1,1 +1,9 @@
 # meu-bot-goldenbet
+Bot inteligente com OCR que envia sinais de slots da GoldenBet com alta precisão. Utiliza webhook para máxima estabilidade, evita conflitos e oferece painel em Flask com visual profissional.
+
+## Recursos
+- Envio automático de sinais a cada 5 minutos
+- OCR com Tesseract para extrair texto de imagens
+- IA simulada com probabilidade de acerto entre 89% e 98%
+- Webhook ativo para evitar conflitos com getUpdates
+- Estilo moderno com as cores da GoldenBet
